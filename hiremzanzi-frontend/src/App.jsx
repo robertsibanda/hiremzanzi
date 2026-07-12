@@ -20,8 +20,8 @@ function AdminRoutes() {
 
   return (
     <Routes>
-      <Route path="/admin" element={<AdminList onLogout={() => setLoggedIn(false)} />} />
-      <Route path="/admin/:id" element={<AdminDetail onLogout={() => setLoggedIn(false)} />} />
+      <Route path="/" element={<AdminList onLogout={() => setLoggedIn(false)} />} />
+      <Route path="/:id" element={<AdminDetail onLogout={() => setLoggedIn(false)} />} />
     </Routes>
   );
 }
