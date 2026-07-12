@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: hiremzanzi
+  mongodb:
+    uri: mongodb://robert:claire6772147@localhost:27018/hiremzanzi?authSource=admin
