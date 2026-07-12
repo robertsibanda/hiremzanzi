@@ -268,16 +268,6 @@ export default function ApplyModal({ vacancy, onClose }) {
             </div>
           </div>
 
-          {/* Contact info note */}
-          {vacancy.contactEmail && (
-            <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
-              Alternatively, email your application directly to{' '}
-              <a href={`mailto:${vacancy.contactEmail}`} className="text-blue-600 hover:text-blue-700 font-medium">
-                {vacancy.contactEmail}
-              </a>
-            </div>
-          )}
-
           {/* Submit */}
           <div className="flex gap-3 pt-2 pb-2">
             <button
