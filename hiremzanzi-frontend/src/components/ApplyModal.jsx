@@ -85,6 +85,7 @@ export default function ApplyModal({ vacancy, onClose }) {
       payload.append('vacancyId', vacancy.id);
       payload.append('vacancyTitle', vacancy.title);
       payload.append('companyName', vacancy.companyName);
+      payload.append('companyEmail', vacancy.contactEmail || '');
       if (pdfFile) {
         payload.append('cv', pdfFile);
       }

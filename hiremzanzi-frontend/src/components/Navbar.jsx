@@ -32,6 +32,16 @@ export default function Navbar() {
             >
               All Vacancies
             </Link>
+            <Link
+              to="/admin"
+              className={`text-sm font-medium transition-colors ${
+                location.pathname.startsWith('/admin')
+                  ? 'text-emerald-600'
+                  : 'text-gray-600 hover:text-emerald-600'
+              }`}
+            >
+              Admin
+            </Link>
           </div>
         </div>
       </div>

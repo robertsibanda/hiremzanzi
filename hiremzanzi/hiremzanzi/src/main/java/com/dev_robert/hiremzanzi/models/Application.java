@@ -31,9 +31,11 @@ public class Application {
 
     private String companyName;
 
+    private String companyEmail;
+
     private String cvFileName;
 
-    private byte[] cvData;
+    private String cvPath;
 
     private LocalDateTime createdDate;
 

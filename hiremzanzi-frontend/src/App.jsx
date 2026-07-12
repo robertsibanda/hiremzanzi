@@ -4,6 +4,8 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Vacancies from './pages/Vacancies';
 import VacancyDetail from './pages/VacancyDetail';
+import AdminList from './pages/AdminList';
+import AdminDetail from './pages/AdminDetail';
 
 export default function App() {
   return (
@@ -15,6 +17,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/vacancies" element={<Vacancies />} />
             <Route path="/vacancies/:id" element={<VacancyDetail />} />
+            <Route path="/admin" element={<AdminList />} />
+            <Route path="/admin/:id" element={<AdminDetail />} />
           </Routes>
         </main>
         <Footer />

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ApplicationService {
@@ -19,6 +20,14 @@ public class ApplicationService {
         return applicationRepo.save(application);
     }
 
+    public Optional<Application> getById(String id) {
+        return applicationRepo.findById(id);
+    }
+
+    public List<Application> getAll() {
+        return applicationRepo.findAll();
+    }
+
     public List<Application> getByVacancyId(String vacancyId) {
         return applicationRepo.findByVacancyId(vacancyId);
     }
@@ -29,5 +38,19 @@ public class ApplicationService {
 
     public long countByVacancyId(String vacancyId) {
         return applicationRepo.countByVacancyId(vacancyId);
+    }
+
+    public void deleteById(String id) {
+        applicationRepo.deleteById(id);
+    }
+
+    public Application updateCompanyEmail(String id, String companyEmail) {
+        Optional<Application> opt = applicationRepo.findById(id);
+        if (opt.isPresent()) {
+            Application app = opt.get();
+            app.setCompanyEmail(companyEmail);
+            return applicationRepo.save(app);
+        }
+        return null;
     }
 }
