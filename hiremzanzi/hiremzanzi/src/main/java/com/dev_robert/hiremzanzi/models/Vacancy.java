@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Document
@@ -34,5 +35,11 @@ public class Vacancy {
     private String salary;
 
     private String category;
+
+    private List<String> requirements;
+
+    private String contactEmail;
+
+    private String contactWebsite;
 
 }

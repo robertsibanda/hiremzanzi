@@ -299,12 +299,52 @@ export default function Vacancies() {
                 </div>
 
                 {/* Description */}
-                <div>
+                <div className="mb-6">
                   <h3 className="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">Job Description</h3>
                   <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
                     {selectedVacancy.description || 'No description provided.'}
                   </p>
                 </div>
+
+                {/* Requirements */}
+                {selectedVacancy.requirements && selectedVacancy.requirements.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">Requirements</h3>
+                    <ul className="space-y-1.5">
+                      {selectedVacancy.requirements.map((req, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                          <svg className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          {req}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Contact info */}
+                {(selectedVacancy.contactEmail || selectedVacancy.contactWebsite) && (
+                  <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">Contact</h3>
+                    {selectedVacancy.contactEmail && (
+                      <div className="flex items-center gap-2 text-sm mb-1">
+                        <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <a href={`mailto:${selectedVacancy.contactEmail}`} className="text-blue-600 hover:text-blue-700">{selectedVacancy.contactEmail}</a>
+                      </div>
+                    )}
+                    {selectedVacancy.contactWebsite && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                        </svg>
+                        <a href={`https://${selectedVacancy.contactWebsite}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700">{selectedVacancy.contactWebsite}</a>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Apply button */}
                 <div className="mt-6 pt-6 border-t border-gray-200">

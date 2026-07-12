@@ -62,12 +62,56 @@ export default function VacancyDetail() {
           )}
         </div>
 
-        <div className="border-t pt-6">
+        <div className="border-t pt-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Description</h2>
           <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
             {vacancy.description || 'No description provided.'}
           </p>
         </div>
+
+        {vacancy.requirements && vacancy.requirements.length > 0 && (
+          <div className="border-t pt-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Requirements</h2>
+            <ul className="space-y-2">
+              {vacancy.requirements.map((req, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {req}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {(vacancy.contactEmail || vacancy.contactWebsite) && (
+          <div className="border-t pt-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              {vacancy.contactEmail && (
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <a href={`mailto:${vacancy.contactEmail}`} className="text-blue-600 hover:text-blue-700">
+                    {vacancy.contactEmail}
+                  </a>
+                </div>
+              )}
+              {vacancy.contactWebsite && (
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                  <a href={`https://${vacancy.contactWebsite}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700">
+                    {vacancy.contactWebsite}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
