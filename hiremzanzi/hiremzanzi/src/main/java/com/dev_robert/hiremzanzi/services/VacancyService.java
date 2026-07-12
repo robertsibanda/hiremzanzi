@@ -3,6 +3,8 @@ package com.dev_robert.hiremzanzi.services;
 import com.dev_robert.hiremzanzi.models.Vacancy;
 import com.dev_robert.hiremzanzi.repos.VacancyRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,6 +23,18 @@ public class VacancyService {
 
     public List<Vacancy> getVacancies () {
         return vacancyRepo.findAll();
+    }
+
+    public Page<Vacancy> getAllPaged(Pageable pageable) {
+        return vacancyRepo.findAll(pageable);
+    }
+
+    public Page<Vacancy> getCategoryPaged(String category, Pageable pageable) {
+        return vacancyRepo.findByCategory(category, pageable);
+    }
+
+    public Page<Vacancy> searchPaged(String title, Pageable pageable) {
+        return vacancyRepo.findByTitleContainingIgnoreCase(title, pageable);
     }
 
     public List<Vacancy> getVacanciesByCategory(String category) {
