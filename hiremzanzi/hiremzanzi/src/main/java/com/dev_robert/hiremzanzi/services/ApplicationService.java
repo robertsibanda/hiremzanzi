@@ -44,6 +44,15 @@ public class ApplicationService {
         applicationRepo.deleteById(id);
     }
 
+    public void verify(String id) {
+        var opt = applicationRepo.findById(id);
+        if (opt.isPresent()) {
+            Application app = opt.get();
+            app.setVerified(true);
+            applicationRepo.save(app);
+        }
+    }
+
     public Application updateCompanyEmail(String id, String companyEmail) {
         Optional<Application> opt = applicationRepo.findById(id);
         if (opt.isPresent()) {

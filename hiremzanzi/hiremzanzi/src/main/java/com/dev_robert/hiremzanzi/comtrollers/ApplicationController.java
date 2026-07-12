@@ -2,6 +2,7 @@ package com.dev_robert.hiremzanzi.comtrollers;
 
 import com.dev_robert.hiremzanzi.models.Application;
 import com.dev_robert.hiremzanzi.services.ApplicationService;
+import com.dev_robert.hiremzanzi.services.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -25,9 +26,13 @@ import java.util.UUID;
 public class ApplicationController {
 
     private static final String UPLOAD_DIR = "/root/hiremzanzi/uploads/";
+    private static final String SITE_URL = "https://hiremzanzi.dev-robert.co.za";
 
     @Autowired
     ApplicationService applicationService;
+
+    @Autowired
+    EmailService emailService;
 
     @PostMapping
     public ResponseEntity<?> create(
@@ -50,6 +55,8 @@ public class ApplicationController {
         app.setVacancyTitle(vacancyTitle);
         app.setCompanyName(companyName);
         app.setCompanyEmail(companyEmail);
+        app.setVerified(false);
+        app.setVerificationToken(UUID.randomUUID().toString());
 
         if (cv != null && !cv.isEmpty()) {
             Path uploadPath = Paths.get(UPLOAD_DIR);
@@ -71,10 +78,30 @@ public class ApplicationController {
 
         Application saved = applicationService.create(app);
 
+        try {
+            emailService.sendVerificationEmail(saved);
+        } catch (Exception e) {
+            System.err.println("Failed to send verification email: " + e.getMessage());
+        }
+
         return ResponseEntity.ok(Map.of(
                 "id", saved.getId(),
-                "message", "Application submitted successfully"
+                "message", "Application submitted successfully. Please check your email to verify."
         ));
+    }
+
+    @GetMapping("/{id}/verify")
+    public ResponseEntity<?> verify(@PathVariable String id, @RequestParam String token) {
+        var opt = applicationService.getById(id);
+        if (opt.isEmpty()) {
+            return ResponseEntity.status(302).header("Location", SITE_URL + "/verification-failed").build();
+        }
+        Application app = opt.get();
+        if (token.equals(app.getVerificationToken())) {
+            applicationService.verify(id);
+            return ResponseEntity.status(302).header("Location", SITE_URL + "/verification-success").build();
+        }
+        return ResponseEntity.status(302).header("Location", SITE_URL + "/verification-failed").build();
     }
 
     @GetMapping
@@ -128,6 +155,24 @@ public class ApplicationController {
             return ResponseEntity.ok(Map.of("message", "Company email updated", "companyEmail", companyEmail));
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{id}/send")
+    public ResponseEntity<?> sendToCompany(@PathVariable String id) {
+        var opt = applicationService.getById(id);
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Application app = opt.get();
+        if (app.getCompanyEmail() == null || app.getCompanyEmail().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No company email set. Edit the application to add one first."));
+        }
+        try {
+            emailService.sendApplicationToCompany(app, app.getCompanyEmail());
+            return ResponseEntity.ok(Map.of("message", "Application sent to " + app.getCompanyEmail()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to send email: " + e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")

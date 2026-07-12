@@ -4,7 +4,7 @@ import api from '../services/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 
-export default function AdminList() {
+export default function AdminList({ onLogout }) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,6 +24,8 @@ export default function AdminList() {
     app.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const verifiedCount = applications.filter(a => a.verified).length;
+
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this application?')) return;
     try {
@@ -40,10 +42,23 @@ export default function AdminList() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Job Applications</h1>
-        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-          {applications.length} total
-        </span>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Job Applications</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {applications.length} total &middot; {verifiedCount} verified &middot; {applications.length - verifiedCount} unverified
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+            {applications.length} total
+          </span>
+          <button
+            onClick={() => { localStorage.removeItem('hiremzanzi_admin_auth'); onLogout(); }}
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -68,6 +83,21 @@ export default function AdminList() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-lg font-semibold text-gray-900">{app.fullName}</h3>
+                    {app.verified ? (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Unverified
+                      </span>
+                    )}
                     <span className="text-sm text-gray-500">{app.email}</span>
                     {app.phone && <span className="text-sm text-gray-400">{app.phone}</span>}
                   </div>
@@ -82,6 +112,11 @@ export default function AdminList() {
                     {app.cvFileName && (
                       <span className="text-sm bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
                         CV: {app.cvFileName}
+                      </span>
+                    )}
+                    {app.companyEmail && (
+                      <span className="text-sm bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                        {app.companyEmail}
                       </span>
                     )}
                   </div>

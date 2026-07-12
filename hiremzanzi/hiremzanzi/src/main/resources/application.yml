@@ -3,3 +3,12 @@ spring:
     name: hiremzanzi
   mongodb:
     uri: mongodb://robert:claire6772147@localhost:27018/hiremzanzi?authSource=admin
+  mail:
+    host: localhost
+    port: 25
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false

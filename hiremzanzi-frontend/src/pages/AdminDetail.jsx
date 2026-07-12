@@ -4,7 +4,7 @@ import api from '../services/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 
-export default function AdminDetail() {
+export default function AdminDetail({ onLogout }) {
   const { id } = useParams();
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,15 +12,14 @@ export default function AdminDetail() {
   const [companyEmail, setCompanyEmail] = useState('');
   const [editingEmail, setEditingEmail] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [showSendModal, setShowSendModal] = useState(false);
-  const [sendEmail, setSendEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState(null);
 
   useEffect(() => {
     api.get(`/applications/${id}`)
       .then(res => {
         setApplication(res.data);
         setCompanyEmail(res.data.companyEmail || '');
-        setSendEmail(res.data.companyEmail || '');
       })
       .catch(() => setError('Failed to load application'))
       .finally(() => setLoading(false));
@@ -49,19 +48,21 @@ export default function AdminDetail() {
     }
   };
 
-  const handleSendEmail = () => {
-    const subject = encodeURIComponent(`Job Application - ${application.vacancyTitle} at ${application.companyName}`);
-    const body = encodeURIComponent(
-      `Dear Hiring Manager,\n\n` +
-      `Please find attached the application for the position of ${application.vacancyTitle} at ${application.companyName}.\n\n` +
-      `Applicant: ${application.fullName}\n` +
-      `Email: ${application.email}\n` +
-      `Phone: ${application.phone || 'N/A'}\n\n` +
-      `Cover Letter:\n${application.coverLetter || 'N/A'}\n\n` +
-      `Best regards`
-    );
-    window.open(`mailto:${sendEmail}?subject=${subject}&body=${body}`, '_blank');
-    setShowSendModal(false);
+  const handleSendToCompany = async () => {
+    if (!application.companyEmail) {
+      alert('Please set a company email first.');
+      return;
+    }
+    setSending(true);
+    setSendResult(null);
+    try {
+      const res = await api.post(`/applications/${id}/send`);
+      setSendResult({ success: true, message: res.data.message });
+    } catch (err) {
+      setSendResult({ success: false, message: err.response?.data?.error || 'Failed to send email' });
+    } finally {
+      setSending(false);
+    }
   };
 
   if (loading) return <Loading />;
@@ -70,14 +71,39 @@ export default function AdminDetail() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <Link to="/admin" className="text-blue-600 hover:text-blue-700 text-sm mb-6 inline-block">
-        &larr; Back to Applications
-      </Link>
+      <div className="flex items-center justify-between mb-6">
+        <Link to="/admin" className="text-blue-600 hover:text-blue-700 text-sm">
+          &larr; Back to Applications
+        </Link>
+        <button
+          onClick={() => { localStorage.removeItem('hiremzanzi_admin_auth'); onLogout(); }}
+          className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
 
       <div className="bg-white rounded-lg shadow-md p-8">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">{application.fullName}</h1>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-3xl font-bold text-gray-900">{application.fullName}</h1>
+              {application.verified ? (
+                <span className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Verified
+                </span>
+              ) : (
+                <span className="text-sm bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Unverified
+                </span>
+              )}
+            </div>
             <p className="text-gray-500">{application.email}</p>
             {application.phone && <p className="text-gray-400 text-sm">{application.phone}</p>}
           </div>
@@ -168,12 +194,21 @@ export default function AdminDetail() {
           </div>
         </div>
 
+        {sendResult && (
+          <div className={`border-t pt-6 mb-6`}>
+            <div className={`rounded-lg p-4 text-sm ${sendResult.success ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+              {sendResult.message}
+            </div>
+          </div>
+        )}
+
         <div className="border-t pt-6 flex gap-3">
           <button
-            onClick={() => setShowSendModal(true)}
-            className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+            onClick={handleSendToCompany}
+            disabled={sending || !application.companyEmail}
+            className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Send to Company
+            {sending ? 'Sending...' : 'Send to Company'}
           </button>
           <button
             onClick={handleDelete}
@@ -183,38 +218,6 @@ export default function AdminDetail() {
           </button>
         </div>
       </div>
-
-      {showSendModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Send Application</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Send <strong>{application.fullName}</strong>'s application for <strong>{application.vacancyTitle}</strong> to:
-            </p>
-            <input
-              type="email"
-              value={sendEmail}
-              onChange={(e) => setSendEmail(e.target.value)}
-              placeholder="company@example.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm mb-4"
-            />
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowSendModal(false)}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendEmail}
-                className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700 transition-colors"
-              >
-                Open Email Client
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

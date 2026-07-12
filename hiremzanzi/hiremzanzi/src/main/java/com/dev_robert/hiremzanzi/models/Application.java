@@ -37,6 +37,10 @@ public class Application {
 
     private String cvPath;
 
+    private boolean verified;
+
+    private String verificationToken;
+
     private LocalDateTime createdDate;
 
 }
