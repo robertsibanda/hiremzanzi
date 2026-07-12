@@ -3,12 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import { getVacancyById } from '../services/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
+import ApplyModal from '../components/ApplyModal';
 
 export default function VacancyDetail() {
   const { id } = useParams();
   const [vacancy, setVacancy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showApplyModal, setShowApplyModal] = useState(false);
 
   useEffect(() => {
     getVacancyById(id)
@@ -113,6 +115,17 @@ export default function VacancyDetail() {
           </div>
         )}
       </div>
+
+      <button
+        onClick={() => setShowApplyModal(true)}
+        className="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors text-lg"
+      >
+        Apply Now
+      </button>
+
+      {showApplyModal && vacancy && (
+        <ApplyModal vacancy={vacancy} onClose={() => setShowApplyModal(false)} />
+      )}
     </div>
   );
 }

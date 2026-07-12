@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getVacanciesPaged } from '../services/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
+import ApplyModal from '../components/ApplyModal';
 
 const CATEGORIES = [
   'All', 'IT & Development', 'Cleaning & Facilities', 'Finance & Accounting',
@@ -49,6 +50,7 @@ export default function Vacancies() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [showMobileDetail, setShowMobileDetail] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(false);
   const PAGE_SIZE = 15;
 
   const fetchData = useCallback(() => {
@@ -348,7 +350,10 @@ export default function Vacancies() {
 
                 {/* Apply button */}
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                  <button
+                    onClick={() => setShowApplyModal(true)}
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  >
                     Apply Now
                   </button>
                 </div>
@@ -361,6 +366,10 @@ export default function Vacancies() {
           )}
         </div>
       </div>
+
+      {showApplyModal && selectedVacancy && (
+        <ApplyModal vacancy={selectedVacancy} onClose={() => setShowApplyModal(false)} />
+      )}
     </div>
   );
 }
