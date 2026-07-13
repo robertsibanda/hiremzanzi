@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 const navItems = [
   {
@@ -22,7 +22,7 @@ const navItems = [
   },
 ];
 
-export default function AdminLayout({ onLogout }) {
+export default function AdminLayout({ onLogout, children }) {
   return (
     <div className="flex min-h-[calc(100vh-160px)]">
       <aside className="w-64 bg-gray-900 text-white flex flex-col">
@@ -65,7 +65,7 @@ export default function AdminLayout({ onLogout }) {
       </aside>
 
       <main className="flex-1 bg-gray-50 overflow-auto">
-        <Outlet />
+        {children}
       </main>
     </div>
   );
