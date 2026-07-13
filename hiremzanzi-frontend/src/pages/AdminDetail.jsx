@@ -4,7 +4,7 @@ import api from '../services/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 
-export default function AdminDetail({ onLogout }) {
+export default function AdminDetail() {
   const { id } = useParams();
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,12 +14,16 @@ export default function AdminDetail({ onLogout }) {
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
+  const [responseText, setResponseText] = useState('');
+  const [sendingResponse, setSendingResponse] = useState(false);
+  const [responseResult, setResponseResult] = useState(null);
 
   useEffect(() => {
     api.get(`/applications/${id}`)
       .then(res => {
         setApplication(res.data);
         setCompanyEmail(res.data.companyEmail || '');
+        setResponseText(res.data.adminResponse || '');
       })
       .catch(() => setError('Failed to load application'))
       .finally(() => setLoading(false));
@@ -58,10 +62,29 @@ export default function AdminDetail({ onLogout }) {
     try {
       const res = await api.post(`/applications/${id}/send`);
       setSendResult({ success: true, message: res.data.message });
+      setApplication(prev => ({ ...prev, sentToCompany: true, sentDate: new Date().toISOString() }));
     } catch (err) {
       setSendResult({ success: false, message: err.response?.data?.error || 'Failed to send email' });
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleSendResponse = async () => {
+    if (!responseText.trim()) {
+      alert('Please enter a response message.');
+      return;
+    }
+    setSendingResponse(true);
+    setResponseResult(null);
+    try {
+      const res = await api.post(`/applications/${id}/respond`, { response: responseText });
+      setResponseResult({ success: true, message: res.data.message });
+      setApplication(prev => ({ ...prev, adminResponse: responseText, responseDate: new Date().toISOString() }));
+    } catch (err) {
+      setResponseResult({ success: false, message: err.response?.data?.error || 'Failed to send response' });
+    } finally {
+      setSendingResponse(false);
     }
   };
 
@@ -70,23 +93,15 @@ export default function AdminDetail({ onLogout }) {
   if (!application) return <div className="max-w-4xl mx-auto px-4 py-8"><ErrorMessage message="Application not found" /></div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <Link to="/admin" className="text-blue-600 hover:text-blue-700 text-sm">
-          &larr; Back to Applications
-        </Link>
-        <button
-          onClick={() => { localStorage.removeItem('hiremzanzi_admin_auth'); onLogout(); }}
-          className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition-colors"
-        >
-          Logout
-        </button>
-      </div>
+    <div className="p-8">
+      <Link to="/admin" className="text-blue-600 hover:text-blue-700 text-sm mb-6 inline-block">
+        &larr; Back to Applications
+      </Link>
 
       <div className="bg-white rounded-lg shadow-md p-8">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <div className="flex items-center gap-3 mb-1">
+            <div className="flex items-center gap-3 mb-1 flex-wrap">
               <h1 className="text-3xl font-bold text-gray-900">{application.fullName}</h1>
               {application.verified ? (
                 <span className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium flex items-center gap-1">
@@ -101,6 +116,14 @@ export default function AdminDetail({ onLogout }) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Unverified
+                </span>
+              )}
+              {application.sentToCompany && (
+                <span className="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Sent to Company
                 </span>
               )}
             </div>
@@ -124,6 +147,11 @@ export default function AdminDetail({ onLogout }) {
               <p className="font-medium text-gray-900">{application.companyName}</p>
             </div>
           </div>
+          {application.sentToCompany && application.sentDate && (
+            <p className="text-sm text-purple-600 mt-3">
+              Sent to company on {new Date(application.sentDate).toLocaleString()}
+            </p>
+          )}
         </div>
 
         <div className="border-t pt-6 mb-6">
@@ -195,27 +223,92 @@ export default function AdminDetail({ onLogout }) {
         </div>
 
         {sendResult && (
-          <div className={`border-t pt-6 mb-6`}>
+          <div className="border-t pt-6 mb-6">
             <div className={`rounded-lg p-4 text-sm ${sendResult.success ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
               {sendResult.message}
             </div>
           </div>
         )}
 
-        <div className="border-t pt-6 flex gap-3">
-          <button
-            onClick={handleSendToCompany}
-            disabled={sending || !application.companyEmail}
-            className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {sending ? 'Sending...' : 'Send to Company'}
-          </button>
-          <button
-            onClick={handleDelete}
-            className="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
-          >
-            Delete Application
-          </button>
+        <div className="border-t pt-6 mb-6">
+          <div className="flex gap-3">
+            <button
+              onClick={handleSendToCompany}
+              disabled={sending || !application.companyEmail}
+              className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {sending ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Send to Company
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleDelete}
+              className="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
+            >
+              Delete Application
+            </button>
+          </div>
+        </div>
+
+        <div className="border-t pt-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Respond to Applicant</h2>
+          <p className="text-sm text-gray-500 mb-3">
+            Send a response to <strong>{application.fullName}</strong> at <strong>{application.email}</strong>
+          </p>
+          <textarea
+            value={responseText}
+            onChange={(e) => setResponseText(e.target.value)}
+            placeholder="Type your response to the applicant here..."
+            rows={5}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-y"
+          />
+          <div className="flex items-center gap-3 mt-3">
+            <button
+              onClick={handleSendResponse}
+              disabled={sendingResponse || !responseText.trim()}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {sendingResponse ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Send Response
+                </>
+              )}
+            </button>
+            {application.adminResponse && (
+              <span className="text-xs text-gray-400">
+                Last response sent {application.responseDate ? new Date(application.responseDate).toLocaleString() : ''}
+              </span>
+            )}
+          </div>
+          {responseResult && (
+            <div className={`mt-3 rounded-lg p-3 text-sm ${responseResult.success ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+              {responseResult.message}
+            </div>
+          )}
         </div>
       </div>
     </div>

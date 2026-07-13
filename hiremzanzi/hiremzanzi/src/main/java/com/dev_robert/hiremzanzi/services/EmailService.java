@@ -21,6 +21,35 @@ public class EmailService {
     private static final String FROM_NOREPLY = "noreply@dev-robert.co.za";
     private static final String FROM_RECRUITERS = "recruiters@dev-robert.co.za";
 
+    private static final String SIGNATURE = """
+        <div style="margin-top: 30px; border-top: 2px solid #e5e7eb; padding-top: 20px;">
+          <table style="width: 100%%; border-collapse: collapse;">
+            <tr>
+              <td style="vertical-align: top; padding-right: 15px;">
+                <div style="width: 44px; height: 44px; background: #10b981; border-radius: 10px; text-align: center; line-height: 44px;">
+                  <span style="color: white; font-weight: bold; font-size: 18px;">HM</span>
+                </div>
+              </td>
+              <td style="vertical-align: top;">
+                <p style="margin: 0 0 2px 0; font-size: 15px; font-weight: bold; color: #111827;">HireMzanzi</p>
+                <p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280;">South Africa's Job Portal — Connecting Talent with Opportunity</p>
+                <table style="border-collapse: collapse;">
+                  <tr>
+                    <td style="padding-right: 12px;">
+                      <a href="https://hiremzanzi.dev-robert.co.za" style="color: #10b981; text-decoration: none; font-size: 12px; font-weight: 500;">hiremzanzi.dev-robert.co.za</a>
+                    </td>
+                    <td style="padding-right: 12px; border-left: 1px solid #e5e7eb; padding-left: 12px;">
+                      <a href="mailto:recruiters@dev-robert.co.za" style="color: #6b7280; text-decoration: none; font-size: 12px;">recruiters@dev-robert.co.za</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin: 10px 0 0 0; font-size: 11px; color: #9ca3af;">Powered by <a href="https://dev-robert.co.za" style="color: #9ca3af; text-decoration: underline;">RobertSolutions</a></p>
+              </td>
+            </tr>
+          </table>
+        </div>
+        """;
+
     public void sendVerificationEmail(Application app) throws MessagingException, java.io.UnsupportedEncodingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -50,8 +79,9 @@ public class EmailService {
               <div style="text-align: center; padding: 15px; color: #9ca3af; font-size: 12px;">
                 This is an automated email. Do not reply to this message.
               </div>
+              %s
             </div>
-            """.formatted(app.getFullName(), app.getVacancyTitle(), app.getCompanyName(), verifyUrl, verifyUrl);
+            """.formatted(app.getFullName(), app.getVacancyTitle(), app.getCompanyName(), verifyUrl, verifyUrl, SIGNATURE);
 
         helper.setText(html, true);
         mailSender.send(message);
@@ -87,6 +117,7 @@ public class EmailService {
               <div style="text-align: center; padding: 15px; color: #9ca3af; font-size: 12px;">
                 Sent via HireMzanzi - hiremzanzi.dev-robert.co.za
               </div>
+              %s
             </div>
             """.formatted(
                 app.getVacancyTitle(),
@@ -95,7 +126,8 @@ public class EmailService {
                 app.getPhone() != null ? app.getPhone() : "Not provided",
                 app.getVacancyTitle(),
                 app.getCompanyName(),
-                app.getCoverLetter() != null ? app.getCoverLetter() : "No cover letter"
+                app.getCoverLetter() != null ? app.getCoverLetter() : "No cover letter",
+                SIGNATURE
         );
 
         helper.setText(html, true);
@@ -107,6 +139,43 @@ public class EmailService {
             }
         }
 
+        mailSender.send(message);
+    }
+
+    public void sendResponseToApplicant(Application app, String response) throws MessagingException, java.io.UnsupportedEncodingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(FROM_RECRUITERS, "HireMzanzi Recruitment");
+        helper.setTo(app.getEmail());
+        helper.setSubject("Update on your application - " + app.getVacancyTitle());
+
+        String html = """
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: #2563eb; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+                <h2 style="margin: 0;">HireMzanzi</h2>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">Application Update</p>
+              </div>
+              <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
+                <p style="color: #374151; font-size: 16px;">Hi <strong>%s</strong>,</p>
+                <p style="color: #374151; font-size: 14px;">We have an update regarding your application for <strong>%s</strong> at <strong>%s</strong>.</p>
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; color: #4b5563; font-size: 14px; white-space: pre-wrap; margin: 20px 0;">%s</div>
+                <p style="color: #374151; font-size: 14px;">Thank you for your interest in this position.</p>
+              </div>
+              <div style="text-align: center; padding: 15px; color: #9ca3af; font-size: 12px;">
+                Sent via HireMzanzi - hiremzanzi.dev-robert.co.za
+              </div>
+              %s
+            </div>
+            """.formatted(
+                app.getFullName(),
+                app.getVacancyTitle(),
+                app.getCompanyName(),
+                response,
+                SIGNATURE
+        );
+
+        helper.setText(html, true);
         mailSender.send(message);
     }
 }

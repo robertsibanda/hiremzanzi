@@ -62,4 +62,26 @@ public class ApplicationService {
         }
         return null;
     }
+
+    public Application markSentToCompany(String id) {
+        Optional<Application> opt = applicationRepo.findById(id);
+        if (opt.isPresent()) {
+            Application app = opt.get();
+            app.setSentToCompany(true);
+            app.setSentDate(LocalDateTime.now());
+            return applicationRepo.save(app);
+        }
+        return null;
+    }
+
+    public Application addResponse(String id, String response) {
+        Optional<Application> opt = applicationRepo.findById(id);
+        if (opt.isPresent()) {
+            Application app = opt.get();
+            app.setAdminResponse(response);
+            app.setResponseDate(LocalDateTime.now());
+            return applicationRepo.save(app);
+        }
+        return null;
+    }
 }

@@ -169,9 +169,30 @@ public class ApplicationController {
         }
         try {
             emailService.sendApplicationToCompany(app, app.getCompanyEmail());
+            applicationService.markSentToCompany(id);
             return ResponseEntity.ok(Map.of("message", "Application sent to " + app.getCompanyEmail()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Failed to send email: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/respond")
+    public ResponseEntity<?> respondToApplicant(@PathVariable String id, @RequestBody Map<String, String> body) {
+        String response = body.get("response");
+        if (response == null || response.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Response cannot be empty"));
+        }
+        var opt = applicationService.getById(id);
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Application app = opt.get();
+        applicationService.addResponse(id, response);
+        try {
+            emailService.sendResponseToApplicant(app, response);
+            return ResponseEntity.ok(Map.of("message", "Response saved and email sent to " + app.getEmail()));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("message", "Response saved but email failed: " + e.getMessage()));
         }
     }
 

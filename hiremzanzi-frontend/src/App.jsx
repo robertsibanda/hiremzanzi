@@ -2,12 +2,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import AdminLayout from './components/AdminLayout';
 import Home from './pages/Home';
 import Vacancies from './pages/Vacancies';
 import VacancyDetail from './pages/VacancyDetail';
 import AdminLogin from './pages/AdminLogin';
 import AdminList from './pages/AdminList';
 import AdminDetail from './pages/AdminDetail';
+import AdminAnalytics from './pages/AdminAnalytics';
 import VerificationSuccess from './pages/VerificationSuccess';
 import VerificationFailed from './pages/VerificationFailed';
 
@@ -19,10 +21,13 @@ function AdminRoutes() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<AdminList onLogout={() => setLoggedIn(false)} />} />
-      <Route path="/:id" element={<AdminDetail onLogout={() => setLoggedIn(false)} />} />
-    </Routes>
+    <AdminLayout onLogout={() => setLoggedIn(false)}>
+      <Routes>
+        <Route index element={<AdminList />} />
+        <Route path="analytics" element={<AdminAnalytics />} />
+        <Route path=":id" element={<AdminDetail />} />
+      </Routes>
+    </AdminLayout>
   );
 }
 

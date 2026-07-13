@@ -41,6 +41,14 @@ public class Application {
 
     private String verificationToken;
 
+    private boolean sentToCompany;
+
+    private LocalDateTime sentDate;
+
+    private String adminResponse;
+
+    private LocalDateTime responseDate;
+
     private LocalDateTime createdDate;
 
 }
