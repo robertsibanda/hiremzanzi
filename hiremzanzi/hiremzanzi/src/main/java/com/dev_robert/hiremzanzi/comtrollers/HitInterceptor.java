@@ -18,7 +18,8 @@ public class HitInterceptor implements HandlerInterceptor {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        if (method.equals("GET") && !path.startsWith("/api/") && !path.startsWith("/assets/") && !path.startsWith("/admin") && !path.contains("favicon")) {
+        if (method.equals("GET") && !path.startsWith("/api/") && !path.startsWith("/assets/") && !path.startsWith("/admin") && !path.contains("favicon")
+                && (path.equals("/") || path.equals("/vacancies") || path.startsWith("/vacancies/") || path.equals("/verification-success") || path.equals("/verification-failed"))) {
             String ip = request.getHeader("X-Forwarded-For");
             if (ip == null || ip.isEmpty()) {
                 ip = request.getRemoteAddr();
